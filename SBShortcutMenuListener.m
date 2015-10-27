@@ -33,28 +33,28 @@ static void SBShortcutMenuListenerInitialize() {
     struct sockaddr_in server_addr = {};
     server_addr.sin_len = sizeof(server_addr);
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(8000);
+    server_addr.sin_port = htons(7007);
     server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    
+
     int sock;
     if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
         return;
-    
+
     if (bind(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1)
         return;
-    
+
     if (listen(sock, 1) == -1)
         return;
-    
+
     server = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, sock, 0, dispatch_get_main_queue());
-    
+
     dispatch_source_set_event_handler(server, ^{
         int client_sock;
         struct sockaddr_in client_addr;
         socklen_t size = sizeof(client_addr);
         if ((client_sock = accept(sock, (struct sockaddr *)&client_addr, &size)) == -1)
             return;
-        
+
         dispatch_io_t channel = dispatch_io_create(DISPATCH_IO_STREAM, client_sock, dispatch_get_main_queue(), ^(int error) {
             close(client_sock);
         });
@@ -62,7 +62,7 @@ static void SBShortcutMenuListenerInitialize() {
         dispatch_io_read(channel, 0, SIZE_MAX, dispatch_get_main_queue(), ^(bool done, dispatch_data_t data, int error) {
             if (done && data == dispatch_data_empty)
                 return dispatch_io_close(channel, DISPATCH_IO_STOP);
-            
+
             if (data && dispatch_data_get_size(data) > 0) {
                 size_t length = 0;
                 const void *bytes = NULL;
